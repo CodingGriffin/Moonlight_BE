@@ -34,19 +34,18 @@ const searchController = {
     const CX = GOOGLE_SEARCH_ENGINE_ID;
     const query = req.query.q; // Get search query from request
     const resultCount = req.query.num || 20
-
+    const num = Number(resultCount) * 3;
     if (!query) {
         return res.status(400).send('Query parameter "q" is required.');
       }
-    const googleSearchUrl = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${query}&num=${resultCount}`;
 
     try {
       const searchResults: GoogleSearchResult[] = [];
       let startIndex = 1;
 
-      while (searchResults.length < Number(resultCount)) {
-        const num = Math.min(Number(resultCount) - searchResults.length, 10); // Max 10 results per request
-        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${query}&start=${startIndex}&num=${num}`;
+      while (searchResults.length < num) {
+        const temp_num = Math.min(num - searchResults.length, 10); // Max 10 results per request
+        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${query}&start=${startIndex}&num=${temp_num}`;
         try {
           const response = await axios.get(url);
           const items = response.data.items || [];
@@ -75,7 +74,7 @@ const searchController = {
 
         res.json({
           searchQuery: query,
-          scrapedData: scrapedData
+          scrapedData: scrapedData.slice(0, Number(resultCount))
         });
       } else {
         res.status(404).send('No search results found.');
@@ -103,7 +102,7 @@ async function scrapeWebsite(url: any) {
     const industry = $('div.industry-info').text() || ''; // Example selector
     const country = $('span.country-info').text() || ''; // Example selector
     const address = $('div.address-info').text() || ''; // Example selector
-    const phone = $('span.phone-number').text() || ''; // Example selector
+    const phone = $('a[href^="tel:"]').attr('href')?.replace('tel:', '') || ''; // Example selector
     const email = $('a[href^="mailto:"]').attr('href')?.replace('mailto:', '') || ''; // Find email
     const website = $('a.website-link').attr('href') || '';
     const googleReviewRating = $('span.review-rating').text() || ''; // Example selector
@@ -116,7 +115,6 @@ async function scrapeWebsite(url: any) {
 
     return { title, firstParagraph, url, name, industry, country, address, phone, email, website, googleReviewRating };
   } catch (error) {
-    console.error('Error scraping the website:', error);
     return { error: 'Failed to scrape the website' };
   }
 }
