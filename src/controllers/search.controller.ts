@@ -42,43 +42,50 @@ const searchController = {
     try {
       const searchResults: GoogleSearchResult[] = [];
       let startIndex = 1;
+      // https://maps.googleapis.com/maps/api/place/textsearch/json?query=roofer+ireland+dublin&key=AIzaSyD8pk2ZnpR82LXx3IJUXFbaRnhZ27hR4ZY
+      // const response = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${API_KEY}`);
+      const response = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${API_KEY}`);
+      res.json({
+        searchQuery: query,
+        scrapedData: response.data.results,//scrapedData.slice(0, Number(resultCount))
+        count: response.data.results.length
+      });
+      // while (searchResults.length < num) {
+      //   const temp_num = Math.min(num - searchResults.length, 10); // Max 10 results per request
+      //   const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${query}&start=${startIndex}&num=${temp_num}`;
+      //   try {
+      //     const response = await axios.get(url);
+      //     const items = response.data.items || [];
 
-      while (searchResults.length < num) {
-        const temp_num = Math.min(num - searchResults.length, 10); // Max 10 results per request
-        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${query}&start=${startIndex}&num=${temp_num}`;
-        try {
-          const response = await axios.get(url);
-          const items = response.data.items || [];
+      //     items.forEach((item: any) => {
+      //       searchResults.push({
+      //         title: item.title,
+      //         link: item.link,
+      //         snippet: item.snippet,
+      //       });
+      //     });
 
-          items.forEach((item: any) => {
-            searchResults.push({
-              title: item.title,
-              link: item.link,
-              snippet: item.snippet,
-            });
-          });
+      //     startIndex += 10; // Move to the next page of results
+      //   } catch (error) {
+      //     console.error("Error fetching search results", error);
+      //     break;
+      //   }
+      // }
 
-          startIndex += 10; // Move to the next page of results
-        } catch (error) {
-          console.error("Error fetching search results", error);
-          break;
-        }
-      }
+      // if (response && searchResults.length > 0) {
+      //   const scrapedData: any[] = [];
+      //   for(let i = 0 ; i < searchResults.length ; i++){
+      //     const result = await scrapeWebsite(searchResults[i].link);
+      //     if(!result.error) scrapedData.push(await scrapeWebsite(searchResults[i].link));
+      //   }
 
-      if (searchResults && searchResults.length > 0) {
-        const scrapedData: any[] = [];
-        for(let i = 0 ; i < searchResults.length ; i++){
-          const result = await scrapeWebsite(searchResults[i].link);
-          if(!result.error) scrapedData.push(await scrapeWebsite(searchResults[i].link));
-        }
-
-        res.json({
-          searchQuery: query,
-          scrapedData: scrapedData.slice(0, Number(resultCount))
-        });
-      } else {
-        res.status(404).send('No search results found.');
-      }
+      //   res.json({
+      //     searchQuery: query,
+      //     scrapedData: response//scrapedData.slice(0, Number(resultCount))
+      //   });
+      // } else {
+      //   res.status(404).send('No search results found.');
+      // }
 
     } catch (error) {
       console.error('Error during search or scraping:', error);
