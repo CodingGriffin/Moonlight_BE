@@ -30,62 +30,20 @@ const searchController = {
 
   search: async (req: Request, res: Response) => {
     // Replace with your Google Custom Search API key and search engine ID
-    const API_KEY = GOOGLE_API_KEY;
     const CX = GOOGLE_SEARCH_ENGINE_ID;
-    const query = req.query.q; // Get search query from request
-    const resultCount = req.query.num || 20
-    const num = Number(resultCount) * 3;
+    const query: string = String(req.query.q); // Get search query from request
+    const limit: number = Number(req.query.num) || 20
     if (!query) {
         return res.status(400).send('Query parameter "q" is required.');
-      }
+    }
 
     try {
-      const searchResults: GoogleSearchResult[] = [];
-      let startIndex = 1;
-      // https://maps.googleapis.com/maps/api/place/textsearch/json?query=roofer+ireland+dublin&key=AIzaSyD8pk2ZnpR82LXx3IJUXFbaRnhZ27hR4ZY
-      // const response = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${API_KEY}`);
-      const response = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${API_KEY}`);
+      const result = await fetchBusinessInfo(query, limit);
       res.json({
         searchQuery: query,
-        scrapedData: response.data.results,//scrapedData.slice(0, Number(resultCount))
-        count: response.data.results.length
+        scrapedData: result,//scrapedData.slice(0, Number(resultCount))
+        count: result.length
       });
-      // while (searchResults.length < num) {
-      //   const temp_num = Math.min(num - searchResults.length, 10); // Max 10 results per request
-      //   const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${query}&start=${startIndex}&num=${temp_num}`;
-      //   try {
-      //     const response = await axios.get(url);
-      //     const items = response.data.items || [];
-
-      //     items.forEach((item: any) => {
-      //       searchResults.push({
-      //         title: item.title,
-      //         link: item.link,
-      //         snippet: item.snippet,
-      //       });
-      //     });
-
-      //     startIndex += 10; // Move to the next page of results
-      //   } catch (error) {
-      //     console.error("Error fetching search results", error);
-      //     break;
-      //   }
-      // }
-
-      // if (response && searchResults.length > 0) {
-      //   const scrapedData: any[] = [];
-      //   for(let i = 0 ; i < searchResults.length ; i++){
-      //     const result = await scrapeWebsite(searchResults[i].link);
-      //     if(!result.error) scrapedData.push(await scrapeWebsite(searchResults[i].link));
-      //   }
-
-      //   res.json({
-      //     searchQuery: query,
-      //     scrapedData: response//scrapedData.slice(0, Number(resultCount))
-      //   });
-      // } else {
-      //   res.status(404).send('No search results found.');
-      // }
 
     } catch (error) {
       console.error('Error during search or scraping:', error);
@@ -95,6 +53,42 @@ const searchController = {
 }
 export default searchController;
 
+async function fetchBusinessInfo(query: string, limit: number) {
+  let results: any[] = [];
+  let nextPageToken: string | undefined;
+  const API_KEY = GOOGLE_API_KEY;
+  const endpoint = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+
+  const params = {
+      query: query,
+      key: API_KEY,
+      pagetoken: ''
+  };
+
+  do {
+      const response = await axios.get(endpoint, { params });
+      const data = response.data;
+
+      results.push(...data.results);
+
+      // Check if we have reached the limit
+      if (results.length >= limit) {
+          break;
+      }
+
+      // Check for next page token
+      nextPageToken = data.next_page_token;
+
+      // Wait for a bit before making the next request
+      if (nextPageToken) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          params['pagetoken'] = nextPageToken; // Update params with next page token
+      }
+  } while (nextPageToken);
+
+  // Return only the requested number of results
+  return results.slice(0, limit);
+}
 
 async function scrapeWebsite(url: any) {
   try {
