@@ -38,7 +38,16 @@ const searchController = {
     }
 
     try {
-      const result = await fetchBusinessInfo(query, limit);
+      let result = await fetchBusinessInfo(query, limit);
+      result = await Promise.all(
+        result.map(async (item) => {
+          const otherData = await fetchBusinessOtherInfo(item.place_id);
+          item['website'] = otherData.website || 'Website not available';
+          item['phoneNumber'] = otherData.formatted_phone_number || 'Phone number not available';
+          return item;
+        })
+      );
+
       res.json({
         searchQuery: query,
         scrapedData: result,//scrapedData.slice(0, Number(resultCount))
@@ -53,11 +62,28 @@ const searchController = {
 }
 export default searchController;
 
+async function fetchBusinessOtherInfo(placeId: string) {
+  const GOOGLE_PLACES_API_DETAIL_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
+  const API_KEY = GOOGLE_API_KEY;
+
+  const params = {
+    place_id: placeId,
+    key: API_KEY,
+    fields: 'website,formatted_phone_number',
+  };
+  const response = await axios.get(GOOGLE_PLACES_API_DETAIL_URL, {
+    params: params
+  });
+  const result = response.data.result;
+
+  return result
+}
+
 async function fetchBusinessInfo(query: string, limit: number) {
   let results: any[] = [];
   let nextPageToken: string | undefined;
   const API_KEY = GOOGLE_API_KEY;
-  const endpoint = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+  const GOOGLE_PLACES_API_TEXT_URL = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
 
   const params = {
       query: query,
@@ -66,7 +92,7 @@ async function fetchBusinessInfo(query: string, limit: number) {
   };
 
   do {
-      const response = await axios.get(endpoint, { params });
+      const response = await axios.get(GOOGLE_PLACES_API_TEXT_URL, { params });
       const data = response.data;
 
       results.push(...data.results);
