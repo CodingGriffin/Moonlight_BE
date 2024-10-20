@@ -44,6 +44,9 @@ const searchController = {
           const otherData = await fetchBusinessOtherInfo(item.place_id);
           item['website'] = otherData.website || 'Website not available';
           item['phoneNumber'] = otherData.formatted_phone_number || 'Phone number not available';
+          const scrapedData = await scrapeWebsite(otherData.website)
+          item['email'] = scrapedData.email;
+          item['socialLinks'] = scrapedData.socialLinks;
           return item;
         })
       );
@@ -98,7 +101,7 @@ async function fetchBusinessInfo(query: string, limit: number) {
       results.push(...data.results);
 
       // Check if we have reached the limit
-      if (results.length >= limit) {
+      if (results.length >= limit * 3) {
           break;
       }
 
@@ -112,27 +115,18 @@ async function fetchBusinessInfo(query: string, limit: number) {
       }
   } while (nextPageToken);
 
+  const filterResults = removeDuplicateResults(results);
+
   // Return only the requested number of results
-  return results.slice(0, limit);
+  return filterResults.slice(0, limit);
 }
 
-async function scrapeWebsite(url: any) {
+async function scrapeWebsite(url: string) {
   try {
     const { data } = await axios.get(url); // Get the HTML from the website
     const $ = cheerio.load(data); // Load HTML into Cheerio for parsing
 
-    // Example: Get the title and first paragraph from the page
-    const title = $('title').text();
-    const firstParagraph = $('p').first().text();
-    // Extracting business data
-    const name = $('h1.business-name').text() || ''; // Example selector
-    const industry = $('div.industry-info').text() || ''; // Example selector
-    const country = $('span.country-info').text() || ''; // Example selector
-    const address = $('div.address-info').text() || ''; // Example selector
-    const phone = $('a[href^="tel:"]').attr('href')?.replace('tel:', '') || ''; // Example selector
     const email = $('a[href^="mailto:"]').attr('href')?.replace('mailto:', '') || ''; // Find email
-    const website = $('a.website-link').attr('href') || '';
-    const googleReviewRating = $('span.review-rating').text() || ''; // Example selector
     
     // Social media links extraction
     const socialLinks: string[] = [];
@@ -140,7 +134,7 @@ async function scrapeWebsite(url: any) {
         socialLinks.push($(element).attr('href') || '');
     });
 
-    return { title, firstParagraph, url, name, industry, country, address, phone, email, website, googleReviewRating };
+    return { email, socialLinks };
   } catch (error) {
     return { error: 'Failed to scrape the website' };
   }
@@ -160,4 +154,12 @@ async function scrapeWithPuppeteer (url: any) {
 
   await browser.close();
   return scrapedData;
+}
+
+function removeDuplicateResults(results: any[]) {
+  const uniqueResults = results.filter(
+    (result, index, self) =>
+      index === self.findIndex((r) => r.place_id === result.place_id)
+  );
+  return uniqueResults;
 }
