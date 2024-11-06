@@ -7,7 +7,9 @@ import {
   GOOGLE_API_KEY,
   GOOGLE_SEARCH_ENGINE_ID,
 } from "../config";
-
+import sendEmail from "../services/sendMail";
+import FormData from 'form-data';
+import Mailgun from 'mailgun.js';
 interface GoogleSearchResult {
   title: string;
   link: string;
@@ -33,12 +35,15 @@ const searchController = {
     const CX = GOOGLE_SEARCH_ENGINE_ID;
     const query: string = String(req.query.q); // Get search query from request
     const limit: number = Number(req.query.num) || 20
+    const lat: number = Number(req.query.lat) || -34
+    const lng: number = Number(req.query.lng) || 150
+    const radius: number = Number(req.query.radius) * 1000 || 100000
     if (!query) {
         return res.status(400).send('Query parameter "q" is required.');
     }
 
     try {
-      let result = await fetchBusinessInfo(query, limit);
+      let result = await fetchBusinessInfo(query, limit, lat, lng, radius);
       result = await Promise.all(
         result.map(async (item) => {
           const otherData = await fetchBusinessOtherInfo(item.place_id);
@@ -62,6 +67,10 @@ const searchController = {
       res.status(500).send('Error fetching search results or scraping the website.');
     }
   },
+
+  sendEmail: async (req: Request, res: Response) => {
+
+  }
 }
 export default searchController;
 
@@ -82,16 +91,14 @@ async function fetchBusinessOtherInfo(placeId: string) {
   return result
 }
 
-async function fetchBusinessInfo(query: string, limit: number) {
+async function fetchBusinessInfo(query: string, limit: number, lat: number, lng: number, radius: number) {
   let results: any[] = [];
   let nextPageToken: string | undefined;
   const API_KEY = GOOGLE_API_KEY;
-  const GOOGLE_PLACES_API_TEXT_URL = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+  const GOOGLE_PLACES_API_TEXT_URL = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&keyword=${encodeURIComponent(query)}&key=${API_KEY}`;
 
   const params = {
-      query: query,
-      key: API_KEY,
-      pagetoken: ''
+    pagetoken: ''
   };
 
   do {
@@ -99,9 +106,9 @@ async function fetchBusinessInfo(query: string, limit: number) {
       const data = response.data;
 
       results.push(...data.results);
-
+      results = removeDuplicateResults(results);
       // Check if we have reached the limit
-      if (results.length >= limit * 3) {
+      if (results.length >= limit) {
           break;
       }
 
@@ -115,10 +122,8 @@ async function fetchBusinessInfo(query: string, limit: number) {
       }
   } while (nextPageToken);
 
-  const filterResults = removeDuplicateResults(results);
-
   // Return only the requested number of results
-  return filterResults.slice(0, limit);
+  return results.slice(0, limit);
 }
 
 async function scrapeWebsite(url: string) {

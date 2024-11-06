@@ -109,12 +109,11 @@ const resultController = {
         index + 1,
         item.name,
         item.industry,
-        item.country,
-        item.address,
-        item.phone,
+        item.formatted_address,
+        item.phoneNumber,
         item.email,
         item.website,
-        item.googleReviewRating,
+        item.rating,
       ]);
       // Write data to the sheet
       await sheets.spreadsheets.values.update({
@@ -123,7 +122,7 @@ const resultController = {
         range,
         valueInputOption: 'RAW',
         requestBody: {
-          values: [['No', 'Name', 'Industry', 'country', 'address', 'phone', 'email', 'website', 'Google Review Rating']],
+          values: [['No', 'Name', 'Industry', 'Address', 'Phone Number', 'Email', 'Website', 'Google Review Rating']],
         },
       });
 
@@ -147,7 +146,6 @@ const resultController = {
                   { userEnteredValue: { stringValue: 'No' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
                   { userEnteredValue: { stringValue: 'Name' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
                   { userEnteredValue: { stringValue: 'Industry' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
-                  { userEnteredValue: { stringValue: 'Country' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
                   { userEnteredValue: { stringValue: 'Address' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
                   { userEnteredValue: { stringValue: 'Phone' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
                   { userEnteredValue: { stringValue: 'Email' }, userEnteredFormat: { backgroundColor: { red: 0.1, green: 0.3, blue: 0.5 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, bold: true } }},
