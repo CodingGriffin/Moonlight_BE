@@ -1,11 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { resultType } from "../types/result.type";
 
 const resultSchema = new mongoose.Schema<resultType>(
   {
-    // userId: {
-    //   type: mongoose.Types.ObjectId,
-    // },
+    userId: {
+      type: Schema.Types.ObjectId,
+    },
     name: {
       type: String,
       // required: [true, "Please enter your name!"],

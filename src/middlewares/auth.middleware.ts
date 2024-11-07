@@ -6,12 +6,13 @@ import { userType } from "../types/user.type";
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.header("Authorization");
+    const authHeader = req.header("Authorization");
+    // const authHeader = req.headers['authorization']; // Get the Authorization header
+    const token = authHeader && authHeader.split(' ')[1]; // Extract the token
     if (!token) return res.status(400).json({ msg: "Invalid Authentication." });
 
     jwt.verify(token, ACCESS_TOKEN_SECRET, (err, user) => {
       if (err) return res.status(400).json({ msg: "Invalid Authentication." });
-
       (<any>req).user = user;
       next();
     });

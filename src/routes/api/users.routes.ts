@@ -21,5 +21,6 @@ route.patch(
   usersController.updateUsersRole
 );
 route.delete("/delete/:id", auth, authAdmin, usersController.deleteUser);
+route.post("/google_auth", usersController.googleLogin);
 
 export default route;

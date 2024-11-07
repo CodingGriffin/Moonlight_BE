@@ -7,8 +7,8 @@ import Results from "../models/results.model";
 const resultController = {
   getResultsAllInfor: async (req: Request, res: Response) => {
     try {
-      const nodes = await Results.find({userId: (<any>req).user.id});
-      res.json(nodes);
+      const results = await Results.find({userId: (<any>req).user.id});
+      res.json(results);
     } catch (err: any) {
       return res.status(500).json({ msg: err.message });
     }
@@ -66,29 +66,29 @@ const resultController = {
     //   {name: "Dublin Ruffer", industry: "Roofing", country: "Irish", address: "36 Street Dublin Ireland", phone: "+223 1234142423", email: "123qwe@gmail.com", website: "https://www.irishroofs.com", googleReviewRating: "5"},
     //   {name: "Dublin Ruffer", industry: "Roofing", country: "Irish", address: "36 Street Dublin Ireland", phone: "+223 1234142423", email: "123qwe@gmail.com", website: "https://www.irishroofs.com", googleReviewRating: "5"}
     // ];
-    const auth = new google.auth.GoogleAuth({
-      keyFile: path.join(__dirname, '../config/google_sheet.json'), // Adjust the path as needed
-      scopes: [
-                'https://www.googleapis.com/auth/spreadsheets',
-                'https://www.googleapis.com/auth/drive'
-              ],
-    });
-
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
-    const drive = google.drive({ version: 'v3', auth: client });
-    const resource = {
-      properties: {
-        title: 'My New Search result', // Change the title as needed
-      },
-      sheets: [{
-        properties: {
-          title: 'Result', // Change the sheet title as needed
-        },
-      }],
-    };
-  
     try {
+
+      const auth = new google.auth.GoogleAuth({
+        keyFile: path.join(__dirname, '../config/google_sheet.json'), // Adjust the path as needed
+        scopes: [
+                  'https://www.googleapis.com/auth/spreadsheets',
+                  'https://www.googleapis.com/auth/drive'
+                ],
+      });
+      const client = await auth.getClient();
+      const sheets = google.sheets({ version: 'v4', auth: client as any });
+      const drive = google.drive({ version: 'v3', auth: client as any });
+      const resource = {
+        properties: {
+          title: 'My New Search result', // Change the title as needed
+        },
+        sheets: [{
+          properties: {
+            title: 'Result', // Change the sheet title as needed
+          },
+        }],
+      };
+  
       const response = await sheets.spreadsheets.create({
         requestBody: resource,
       });
@@ -117,7 +117,7 @@ const resultController = {
       ]);
       // Write data to the sheet
       await sheets.spreadsheets.values.update({
-        auth: client,
+        auth: client as any,
         spreadsheetId,
         range,
         valueInputOption: 'RAW',
@@ -128,7 +128,7 @@ const resultController = {
 
       // Append a new row
       await sheets.spreadsheets.values.append({
-        auth: client,
+        auth: client as any,
         spreadsheetId,
         range: 'Result!A2', // Adjust as necessary
         valueInputOption: 'RAW',

@@ -67,10 +67,6 @@ const searchController = {
       res.status(500).send('Error fetching search results or scraping the website.');
     }
   },
-
-  sendEmail: async (req: Request, res: Response) => {
-
-  }
 }
 export default searchController;
 

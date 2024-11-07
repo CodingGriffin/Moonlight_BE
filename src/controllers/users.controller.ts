@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 
 import { validateEmail } from "../validations";
 import {
@@ -17,8 +18,11 @@ import {
   CLIENT_URL,
   REFRESH_TOKEN_SECRET,
   SMTP_MODE,
+  GOOGLE_CLIENT_ID,
 } from "../config";
 import { UserJwtPayload } from "../types/jwt.type";
+
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const userController = {
   register: async (req: Request, res: Response) => {
@@ -258,5 +262,32 @@ const userController = {
       return res.status(500).json({ msg: err.message });
     }
   },
+  googleLogin: async (req: Request, res: Response) => {
+    const { token } = req.body;
+    const access_token = token.access_token;
+    const id_token = token.id_token;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: id_token,
+        audience: '368030744985-v4ibmcdnk52s8l4uotmqbdugq9iqh6kl.apps.googleusercontent.com', // Specify the CLIENT_ID of the app that accesses the backend
+      });
+      const payload = ticket.getPayload();
+      const { sub: googleId, email, name, picture } = payload || {};
+      let user = await Users.findOne({ googleId });
+      if (!user) {
+          // If not, create a new user
+          user = new Users({ googleId, email, name, picture, token: access_token, });
+          await user.save();
+      }
+
+      // Optionally create a session token or JWT for further authentication
+      const sessionToken = 'YOUR_SESSION_TOKEN'; // Generate a session token or JWT
+
+      res.json({ user, sessionToken });
+    } catch (err: any) {
+      console.error('Error verifying token:', err);
+      res.status(401).send('Unauthorized');
+    }
+  }
 };
 export default userController;

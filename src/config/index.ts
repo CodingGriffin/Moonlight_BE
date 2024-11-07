@@ -34,3 +34,7 @@ export const FACEBOOK_SECRET = process.env.FACEBOOK_SECRET || "";
 
 export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
 export const GOOGLE_SEARCH_ENGINE_ID = process.env.GOOGLE_SEARCH_ENGINE_CX || "";
+
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+export const REDIRECT_URI = process.env.REDIRECT_URI || "";
