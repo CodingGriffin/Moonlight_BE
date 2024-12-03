@@ -55,7 +55,7 @@ const searchController = {
           return item;
         })
       );
-
+console.log(result);
       res.json({
         searchQuery: query,
         scrapedData: result,//scrapedData.slice(0, Number(resultCount))

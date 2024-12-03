@@ -4,12 +4,11 @@ export type resultType = {
   userId: Types.ObjectId;
   name: string;
   industry: string;
-  country: string;
-  address: string;
-  phone: string;
+  formatted_address: string;
+  phoneNumber: string;
   email: string;
   website: string;
-  googleReviewRating: Number;
+  rating: Number;
   isFavorite?: Boolean;
   createdAt?: Date;
   updatedAt?: Date;

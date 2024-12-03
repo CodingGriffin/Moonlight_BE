@@ -14,13 +14,10 @@ const resultSchema = new mongoose.Schema<resultType>(
     industry: {
       type: String,
     },
-    country: {
+    formatted_address: {
       type: String,
     },
-    address: {
-      type: String,
-    },
-    phone: {
+    phoneNumber: {
       type: String,
     },
     email: {
@@ -29,7 +26,7 @@ const resultSchema = new mongoose.Schema<resultType>(
     website: {
       type: String,
     },
-    googleReviewRating: {
+    rating: {
       type: Number,
     },
     isFavorite: {

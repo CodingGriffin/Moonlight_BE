@@ -2,6 +2,7 @@ import { Router } from "express";
 import usersRoute from "./api/users.routes";
 import uploadRoute from "./api/upload.routes";
 import searchRoute from "./api/search.routes";
+import sheetRoute from "./api/sheet.routes";
 import resultRoute from "./api/result.routes";
 import emailRoute from "./api/email.routes";
 
@@ -10,6 +11,7 @@ route.use("/user", usersRoute);
 route.use("/upload", uploadRoute);
 route.use("/search", searchRoute);
 route.use("/result", resultRoute);
+route.use("/sheet", sheetRoute);
 route.use("/email", emailRoute);
 
 export default route;
