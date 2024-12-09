@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { google, gmail_v1 } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import OpenAI from 'openai';
 
 import {
   GOOGLE_CLIENT_ID,
@@ -88,5 +89,26 @@ const emailController = {
 			return res.status(500).json({ msg: error.message });
 		}
 	},
+
+	createEmail: async (req: Request, res: Response) => {
+
+		const openai = new OpenAI({
+			apiKey:
+			  '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', // Replace with your OpenAI API key
+			dangerouslyAllowBrowser: true,
+		});
+		const completion = await openai.chat.completions.create({
+			model: 'gpt-3.5',
+			messages: [
+			{ role: 'system', content: 'You are a helpful assistant.' },
+			{
+				role: 'user',
+				content: 'Write a haiku about recursion in programming.',
+			},
+			],
+		});
+
+		console.log(completion.choices[0].message);
+	}
 }
 export default emailController;
